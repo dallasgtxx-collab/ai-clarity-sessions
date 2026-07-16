@@ -6,7 +6,17 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:stripe": "node scripts/test-stripe-integration.js",
+    "test:checkout": "node scripts/test-checkout-flow.js",
+    "test:webhook": "node scripts/test-webhook-signature.js",
+    "test:endpoints": "node scripts/verify-endpoints.js",
+    "test:all": "npm run build && npm run test:stripe && npm run test:webhook && npm run test:endpoints",
+    "stripe:create-session": "node scripts/create-test-session.js",
+    "stripe:list-products": "node scripts/list-stripe-products.js",
+    "stripe:verify-webhook": "node scripts/verify-webhook-endpoint.js",
+    "deploy:auto": "node scripts/automate-deployment.js",
+    "deploy:verify": "npm run build && npm run test:all && echo '✨ Deployment ready for production!'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
