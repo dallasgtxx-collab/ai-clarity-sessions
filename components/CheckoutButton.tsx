@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import type { ProductKey } from "@/lib/products";
+import { trackEvent } from "@/lib/analytics";
 
 type CheckoutButtonProps = {
   product: ProductKey;
   label?: string;
   disabled?: boolean;
   disabledMessage?: string;
+  sessionId?: string;
 };
 
 export default function CheckoutButton({
@@ -15,6 +17,7 @@ export default function CheckoutButton({
   label = "Reserve this session",
   disabled = false,
   disabledMessage = "Live registration is opening soon.",
+  sessionId,
 }: CheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -26,12 +29,13 @@ export default function CheckoutButton({
     setError("");
 
     try {
+      trackEvent("begin_checkout", { product_key: product, has_class_session: Boolean(sessionId), quantity: 1 });
       const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ product }),
+        body: JSON.stringify({ product, sessionId }),
       });
 
       const data = (await response.json()) as {
@@ -47,6 +51,7 @@ export default function CheckoutButton({
 
       window.location.assign(data.url);
     } catch (checkoutError) {
+      trackEvent("checkout_error", { product_key: product, error_type: "checkout_request" });
       setError(
         checkoutError instanceof Error
           ? checkoutError.message

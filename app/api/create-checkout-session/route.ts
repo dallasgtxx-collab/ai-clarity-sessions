@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getStripePriceId, isProductKey, products } from "@/lib/products";
+import { getStripePriceId, isBookableProductKey, isProductKey, products } from "@/lib/products";
 import { isCheckoutEnabled } from "@/lib/site";
 import { getStripe } from "@/lib/stripe";
+import { getEligibleClassSession } from "@/lib/scheduling";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,7 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as {
       product?: string;
+      sessionId?: string;
     };
 
     if (!body.product || !isProductKey(body.product)) {
@@ -26,6 +28,17 @@ export async function POST(request: Request) {
     }
 
     const selectedProduct = products[body.product];
+    const requiresSchedule = isBookableProductKey(body.product);
+    const classSession = requiresSchedule && body.sessionId
+      ? await getEligibleClassSession(body.sessionId, body.product)
+      : null;
+
+    if (requiresSchedule && !classSession) {
+      return NextResponse.json(
+        { error: "Please choose an available class date before checkout." },
+        { status: 409 },
+      );
+    }
     const priceId = getStripePriceId(selectedProduct);
 
     if (!priceId) {
@@ -76,6 +89,7 @@ export async function POST(request: Request) {
         product_key: selectedProduct.key,
         product: selectedProduct.key,
         product_name: selectedProduct.name,
+        ...(classSession ? { class_session_id: classSession.id } : {}),
       },
       ...(selectedProduct.mode === "payment"
         ? {
@@ -90,6 +104,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       url: session.url,
+      checkoutSessionId: session.id,
     });
   } catch (error) {
     console.error("Stripe Checkout error:", error);

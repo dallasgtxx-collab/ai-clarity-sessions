@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 const examples = [
   {
@@ -52,7 +53,7 @@ export function InteractiveDemo() {
                 key={example.id}
                 type="button"
                 aria-pressed={selectedId === example.id}
-                onClick={() => setSelectedId(example.id)}
+                onClick={() => { setSelectedId(example.id); trackEvent("demo_interaction", { example: example.id }); }}
                 className="demo-choice"
               >
                 {example.label}

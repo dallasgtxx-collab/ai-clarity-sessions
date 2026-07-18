@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { siteConfig } from "@/lib/site";
+import { TrackedContactLink } from "@/components/AnalyticsEvents";
 
 export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contact AI Clarity Sessions about training, group sessions, or an existing booking.",
+  title: "Contact for AI Training in Dallas",
+  description: "Contact AI Clarity Sessions about beginner classes, private tutoring, community training, or corporate AI workshops across Dallas–Fort Worth.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {
@@ -16,12 +18,18 @@ export default function ContactPage() {
           Questions are welcome.
         </h1>
         <p className="mt-5 text-lg leading-8 text-ink/70">
-          Ask about private training, family sessions, church or community
-          groups, accessibility needs, or an existing payment.
+          Ask about private AI tutoring, family sessions, business workshops,
+          church or community groups, accessibility needs, or an existing payment.
         </p>
-        <a className="button-primary mt-8" href={`mailto:${siteConfig.supportEmail}`}>
+        <p className="mt-4 leading-7 text-ink/60">
+          Service is available by arrangement across Dallas, Oak Cliff, Cockrell Hill,
+          Cedar Hill, DeSoto, Duncanville, Lancaster, Grand Prairie, Irving,
+          Arlington, Fort Worth, and the wider DFW Metroplex. AI Clarity Sessions
+          does not represent a walk-in storefront.
+        </p>
+        <TrackedContactLink className="button-primary mt-8" href={`mailto:${siteConfig.supportEmail}`}>
           Email {siteConfig.supportEmail}
-        </a>
+        </TrackedContactLink>
         <p className="mt-4 text-sm font-bold text-ink/55">
           Normal response time: {siteConfig.schedulingWindow}.
         </p>

@@ -7,6 +7,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ["", 1, "weekly"],
     ["/contact", 0.7, "monthly"],
+    ["/dallas-ai-training", 0.9, "weekly"],
+    ["/reviews", 0.5, "monthly"],
     ["/refunds", 0.5, "monthly"],
     ["/privacy", 0.4, "yearly"],
     ["/terms", 0.4, "yearly"],

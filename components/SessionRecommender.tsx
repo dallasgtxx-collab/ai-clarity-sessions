@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 const paths = [
   {
@@ -52,7 +53,7 @@ export function SessionRecommender() {
                   key={path.id}
                   type="button"
                   aria-pressed={path.id === selectedId}
-                  onClick={() => setSelectedId(path.id)}
+                  onClick={() => { setSelectedId(path.id); trackEvent("session_recommender_complete", { recommendation: path.id }); }}
                   className="path-choice"
                 >
                   <span>{path.label}</span>

@@ -3,6 +3,9 @@ import Link from "next/link";
 import type Stripe from "stripe";
 import { verifyCheckout } from "@/lib/fulfillment";
 import { siteConfig } from "@/lib/site";
+import { formatSessionDate, formatSessionTime, getPrivateClassSession, getRegistrationByCheckoutId } from "@/lib/scheduling";
+import type { PrivateClassSession, Registration } from "@/lib/database.types";
+import { RegistrationAnalytics } from "@/components/RegistrationAnalytics";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +30,15 @@ function formatAmount(session: Stripe.Checkout.Session): string | null {
 export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   const { session_id: sessionId } = await searchParams;
   let session: Stripe.Checkout.Session | null = null;
+  let registration: Registration | null = null;
+  let classSession: PrivateClassSession | null = null;
   let verificationMessage = "We could not find a Checkout Session to verify.";
 
   if (sessionId) {
     try {
       session = await verifyCheckout(sessionId, "success_page");
+      registration = await getRegistrationByCheckoutId(sessionId);
+      classSession = registration ? await getPrivateClassSession(registration.session_id) : null;
       verificationMessage =
         "Your payment may still be processing. Check your email before trying again.";
     } catch (error) {
@@ -91,6 +98,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
           {isConfirmed && session ? (
             <>
+              <RegistrationAnalytics productKey={session.metadata?.product_key || "unknown"} value={session.amount_total ? session.amount_total / 100 : undefined} />
               <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-ink/65">
                 Thank you. We received payment for <strong className="text-ink">{productName}</strong>.
               </p>
@@ -106,6 +114,11 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                   <dt className="text-sm font-bold text-ink/55">Session</dt>
                   <dd className="font-black sm:text-right">{productName}</dd>
                 </div>
+                {classSession ? <>
+                  <div className="flex flex-col gap-1 border-b border-ink/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5"><dt className="text-sm font-bold text-ink/55">Date</dt><dd className="font-black sm:text-right">{formatSessionDate(classSession)}</dd></div>
+                  <div className="flex flex-col gap-1 border-b border-ink/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5"><dt className="text-sm font-bold text-ink/55">Time</dt><dd className="font-black sm:text-right">{formatSessionTime(classSession)} · {classSession.timezone}</dd></div>
+                  <div className="flex flex-col gap-1 border-b border-ink/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5"><dt className="text-sm font-bold text-ink/55">Location</dt><dd className="font-black sm:text-right">{classSession.location_type === "online" ? "Online — private access sent by email" : [classSession.location_name, classSession.location_address].filter(Boolean).join(", ")}</dd></div>
+                </> : null}
                 <div className="flex flex-col gap-1 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
                   <dt className="text-sm font-bold text-ink/55">Confirmation email</dt>
                   <dd className="break-all font-black sm:text-right">
@@ -131,10 +144,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                     </>
                   ) : (
                     <>
-                      Keep your Stripe confirmation. We will contact you {siteConfig.schedulingWindow}{" "}
-                      to agree on the date, format, location, and what to bring.
-                      If no workable date is agreed within 14 days, you may request
-                      a full refund.
+                      Keep your Stripe confirmation and class email. Add the attached calendar event, bring a charged laptop or tablet, and do not share any private online-class link. Contact us if you need accessibility support or scheduling help.
                     </>
                   )}
                 </p>

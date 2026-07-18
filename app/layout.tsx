@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
+import { AnalyticsConsent } from "@/components/AnalyticsConsent";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,9 +19,11 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   keywords: [
-    "AI classes for beginners",
-    "ChatGPT workshop",
-    "artificial intelligence training",
+    "AI classes in Dallas",
+    "beginner AI classes Dallas",
+    "ChatGPT classes Dallas",
+    "artificial intelligence training Dallas",
+    "hands-on AI training DFW",
     "hands-on AI class",
     "AI Clarity Sessions",
     "AI education",
@@ -28,9 +32,9 @@ export const metadata: Metadata = {
   ],
   category: "education",
   openGraph: {
-    title: "AI Clarity Sessions | AI Finally Makes Sense",
+    title: "AI Classes in Dallas | AI Clarity Sessions",
     description:
-      "No coding. No tech talk. Patient, hands-on guidance for using AI in real life, school, creativity, and business.",
+      "Patient, hands-on AI and ChatGPT classes for beginners, creators, community groups, and businesses across Dallas–Fort Worth.",
     url: "https://aiclaritysessions.com",
     siteName: "AI Clarity Sessions",
     locale: "en_US",
@@ -80,6 +84,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         {children}
+        <Suspense fallback={null}><AnalyticsConsent /></Suspense>
       </body>
     </html>
   );

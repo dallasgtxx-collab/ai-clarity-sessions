@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { verifyCheckout } from "@/lib/fulfillment";
+import { cancelCheckoutRegistration, verifyCheckout } from "@/lib/fulfillment";
 import { getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -40,7 +40,11 @@ export async function POST(request: Request) {
         await verifyCheckout(event.data.object.id, "webhook");
         break;
       case "checkout.session.async_payment_failed":
+        await cancelCheckoutRegistration(event.data.object.id, "failed");
         console.warn("A delayed Checkout payment failed.", event.data.object.id);
+        break;
+      case "checkout.session.expired":
+        await cancelCheckoutRegistration(event.data.object.id, "unpaid");
         break;
       default:
         break;

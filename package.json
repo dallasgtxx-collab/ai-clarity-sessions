@@ -19,11 +19,14 @@
     "deploy:verify": "npm run build && npm run test:all && echo '✨ Deployment ready for production!'"
   },
   "dependencies": {
+    "@react-email/components": "^1.0.12",
     "@supabase/supabase-js": "^2.108.2",
     "next": "15.5.19",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "stripe": "^22.3.1"
+    "resend": "^6.17.2",
+    "stripe": "^22.3.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

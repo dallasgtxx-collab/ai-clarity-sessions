@@ -1,13 +1,20 @@
 import Link from "next/link";
+import Image from "next/image";
 import CheckoutButton from "@/components/CheckoutButton";
+import { SessionCheckout } from "@/components/SessionCheckout";
+import { ManageConsentButton } from "@/components/AnalyticsConsent";
+import { PricingViewTracker } from "@/components/AnalyticsEvents";
+import { UpcomingSchedule } from "@/components/UpcomingSchedule";
 import { ExperienceLayer } from "@/components/ExperienceLayer";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { SessionRecommender } from "@/components/SessionRecommender";
-import { products, type ProductKey } from "@/lib/products";
+import { products, type BookableProductKey } from "@/lib/products";
 import { isCheckoutEnabled, siteConfig } from "@/lib/site";
+import { getUpcomingClassSessions } from "@/lib/scheduling";
+import { getApprovedReviews } from "@/lib/reviews";
 
 type SessionOption = {
-  productKey: ProductKey;
+  productKey: BookableProductKey;
   description: string;
   idealFor: string;
   features: readonly string[];
@@ -45,12 +52,6 @@ const outcomes = [
 
 const audiences = ["Complete beginners", "Creators", "Small business owners", "Students and families", "Community groups", "Career changers"];
 
-const testimonials = [
-  { quote: "The pace felt human. I stopped feeling behind and started seeing where AI could genuinely help me.", label: "Beginner learner" },
-  { quote: "I left with prompts and workflows I could use the same day—not another folder of notes I would never open.", label: "Small business owner" },
-  { quote: "The safety guidance made the difference. It was practical, honest, and easy to explain to my family.", label: "Community participant" },
-];
-
 const faqs = [
   ["Do I need any AI or technical experience?", "None. Sessions begin with the fundamentals and every step is explained in everyday language. You will never be expected to code."],
   ["What should I bring?", "Bring a charged phone, tablet, or laptop. A laptop offers the most room to practice, but any modern device works."],
@@ -67,6 +68,7 @@ const organizationSchema = {
   url: `https://${siteConfig.domain}`,
   email: siteConfig.supportEmail,
   founder: { "@type": "Person", name: "Osborn G. Nelson II" },
+  areaServed: ["Dallas", "Oak Cliff", "Cockrell Hill", "Cedar Hill", "DeSoto", "Duncanville", "Lancaster", "Grand Prairie", "Irving", "Arlington", "Fort Worth", "Dallas–Fort Worth Metroplex"],
   description: "Beginner-friendly, hands-on artificial intelligence education for everyday people, creators, families, and organizations.",
 };
 
@@ -80,8 +82,11 @@ const faqSchema = {
   })),
 };
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
   const checkoutEnabled = isCheckoutEnabled();
+  const [upcomingSessions, approvedReviews] = await Promise.all([getUpcomingClassSessions(), getApprovedReviews()]);
 
   return (
     <main id="main-content" className="site-shell">
@@ -113,7 +118,7 @@ export default function Home() {
           <div className="hero-copy">
             <p className="pill"><span aria-hidden="true" /> AI education for real life</p>
             <h1 id="hero-title">Understand AI.<br /><em>Use it with confidence.</em></h1>
-            <p className="hero-lede">A hands-on learning experience that turns fast-moving technology into clear, practical skills—without code, jargon, or judgment.</p>
+            <p className="hero-lede">Hands-on AI classes for Dallas–Fort Worth learners, creators, families, and businesses—without code, jargon, or judgment.</p>
             <div className="hero-actions">
               <a href="#pricing" className="button-glow">Explore sessions <span aria-hidden="true">→</span></a>
               <a href="#demo" className="button-quiet"><span className="play" aria-hidden="true">▶</span> Try the live demo</a>
@@ -162,6 +167,8 @@ export default function Home() {
       <InteractiveDemo />
       <SessionRecommender />
 
+      <UpcomingSchedule sessions={upcomingSessions} />
+
       <section id="instructor" className="section instructor-section">
         <div className="site-container instructor-grid">
           <div className="portrait-card" aria-label="Instructor portrait monogram for Osborn G. Nelson II">
@@ -179,15 +186,17 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section testimonials-section">
+      <section className="section testimonials-section" aria-labelledby="reviews-title">
         <div className="site-container">
-          <div className="section-heading center-heading"><p className="kicker">The learning experience</p><h2>Clarity changes what feels possible.</h2><p>What learners value most about a patient, practical approach to AI.</p></div>
-          <div className="testimonial-grid">{testimonials.map((item) => <figure key={item.label}><div className="stars" aria-label="Five stars">★★★★★</div><blockquote>“{item.quote}”</blockquote><figcaption><span aria-hidden="true">✦</span>{item.label}</figcaption></figure>)}</div>
+          <div className="section-heading center-heading"><p className="kicker">Verified student feedback</p><h2 id="reviews-title">Real experiences, shared with consent.</h2><p>Only moderated reviews from students who explicitly agreed to publication appear here.</p></div>
+          {approvedReviews.length ? <div className="testimonial-grid">{approvedReviews.map((item) => <figure key={item.id} data-clarity-mask="true">{item.photoUrl ? <Image unoptimized className="review-photo" src={item.photoUrl} width={64} height={64} alt={`Submitted photo of ${item.student_name}`} /> : null}<div className="stars" aria-label={`${item.rating} out of 5 stars`}>{"★".repeat(item.rating)}{"☆".repeat(5-item.rating)}</div><blockquote>“{item.review_text}”</blockquote><figcaption><span aria-hidden="true">✦</span>{item.student_name}{item.student_role ? ` · ${item.student_role}` : ""}</figcaption></figure>)}</div> : <div className="reviews-empty"><strong>Student stories will appear here after approval.</strong><p>We never invent reviews or publish submissions automatically.</p></div>}
+          <p className="review-invite">Attended a class? <Link href="/reviews">Share an honest review</Link>.</p>
         </div>
       </section>
 
       <section id="pricing" className="section pricing-section">
         <div className="site-container">
+          <PricingViewTracker />
           <div className="section-heading center-heading"><p className="kicker">Choose your starting point</p><h2>One clear investment.<br />Skills that keep paying back.</h2><p>Every session includes patient instruction, guided practice, and secure checkout through Stripe.</p></div>
           <div className="pricing-grid">
             {sessions.map((session) => {
@@ -198,7 +207,7 @@ export default function Home() {
                 <div className="price"><strong>{product.displayPrice}</strong><span>per person</span></div>
                 <p className="duration">{product.duration} · {product.delivery}</p><p className="plan-copy">{session.description}</p>
                 <ul>{session.features.map((feature) => <li key={feature}><span aria-hidden="true">✓</span>{feature}</li>)}</ul>
-                <CheckoutButton product={session.productKey} label={`Reserve ${product.shortName}`} disabled={!checkoutEnabled} disabledMessage="Secure registration is opening soon." />
+                <SessionCheckout product={session.productKey} sessions={upcomingSessions.filter((item) => item.product_key === session.productKey)} checkoutEnabled={checkoutEnabled} />
               </article>;
             })}
           </div>
@@ -214,7 +223,7 @@ export default function Home() {
 
       <section className="final-cta"><div className="cta-orb" aria-hidden="true" /><div className="site-container"><p>YOUR NEXT CHAPTER CAN START HERE</p><h2>AI is moving fast.<br /><em>You can move with it.</em></h2><a href="#pricing" className="button-glow">Find your session <span aria-hidden="true">→</span></a></div></section>
 
-      <footer className="site-footer"><div className="site-container footer-grid"><div><Link href="/" className="brand brand-footer"><span className="brand-glyph">AC</span><span><strong>AI Clarity</strong><small>Sessions</small></span></Link><p>Practical AI education presented clearly, safely, and personally.</p></div><div><h2>Explore</h2><a href="#experience">The experience</a><a href="#instructor">Instructor</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div><div><h2>Information</h2><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/refunds">Refunds</Link></div><div><h2>Stay curious</h2><p>Questions about a session or private group?</p><a className="email-link" href={`mailto:${siteConfig.supportEmail}`}>{siteConfig.supportEmail}</a></div></div><div className="site-container footer-bottom"><span>© {new Date().getFullYear()} AI Clarity Sessions</span><span>Human-first AI education</span></div></footer>
+      <footer className="site-footer"><div className="site-container footer-grid"><div><Link href="/" className="brand brand-footer"><span className="brand-glyph">AC</span><span><strong>AI Clarity</strong><small>Sessions</small></span></Link><p>Practical AI education for Dallas–Fort Worth, presented clearly, safely, and personally.</p></div><div><h2>Explore</h2><a href="#experience">The experience</a><a href="#instructor">Instructor</a><a href="#pricing">Pricing</a><Link href="/dallas-ai-training">Dallas AI training</Link></div><div><h2>Information</h2><Link href="/contact">Contact</Link><Link href="/reviews">Share a review</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/refunds">Refunds</Link></div><div><h2>Stay curious</h2><p>Questions about a session or private group?</p><a className="email-link" href={`mailto:${siteConfig.supportEmail}`}>{siteConfig.supportEmail}</a><ManageConsentButton /></div></div><div className="site-container footer-bottom"><span>© {new Date().getFullYear()} AI Clarity Sessions</span><span>Human-first AI education</span></div></footer>
 
       <a href="#pricing" className="mobile-cta">Reserve your seat <span aria-hidden="true">→</span></a>
     </main>
