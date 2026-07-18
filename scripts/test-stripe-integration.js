@@ -14,8 +14,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     // Test 1: List and verify products
     console.log("📦 Checking products...");
     const products = await stripe.products.list({ limit: 10 });
-    const expectedProducts = ["beginner", "workshop", "bootcamp", "membership"];
-    
     for (const product of products.data) {
       console.log(`  • ${product.name}: ${product.id}`);
     }

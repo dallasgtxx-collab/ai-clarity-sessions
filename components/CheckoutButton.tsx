@@ -65,6 +65,7 @@ export default function CheckoutButton({
         aria-busy={isLoading}
         className="button-primary w-full disabled:cursor-wait disabled:opacity-65"
       >
+        {isLoading ? <span className="checkout-spinner" aria-hidden="true" /> : null}
         {isLoading
           ? "Opening secure checkout..."
           : disabled
@@ -79,7 +80,7 @@ export default function CheckoutButton({
       <p
         aria-live="polite"
         role={error ? "alert" : undefined}
-        className="mt-3 min-h-5 text-center text-sm font-bold text-red-700"
+        className="mt-3 min-h-5 text-center text-sm font-bold text-red-600"
       >
         {error}
       </p>

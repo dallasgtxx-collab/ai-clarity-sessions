@@ -9,8 +9,6 @@
  *   npm run deploy:auto
  */
 
-const fs = require("fs");
-const path = require("path");
 const { execSync } = require("child_process");
 
 // Get Stripe keys from environment variables

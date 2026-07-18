@@ -8,10 +8,10 @@ export const metadata: Metadata = {
     template: "%s | AI Clarity Sessions",
   },
   description:
-    "Beginner-friendly, hands-on AI workshops that make ChatGPT and everyday artificial intelligence tools clear, useful, and safe.",
+    "Beginner-friendly, hands-on AI training with Osborn G. Nelson II. Learn to use ChatGPT and everyday AI tools clearly, confidently, and safely.",
   applicationName: "AI Clarity Sessions",
-  authors: [{ name: "Da'LLas G'" }],
-  creator: "Da'LLas G'",
+  authors: [{ name: "Osborn G. Nelson II" }],
+  creator: "Osborn G. Nelson II",
   publisher: "AI Clarity Sessions",
   alternates: {
     canonical: "/",
@@ -22,12 +22,16 @@ export const metadata: Metadata = {
     "artificial intelligence training",
     "hands-on AI class",
     "AI Clarity Sessions",
+    "AI education",
+    "AI training for small business",
+    "AI safety training",
   ],
+  category: "education",
   openGraph: {
     title: "AI Clarity Sessions | AI Finally Makes Sense",
     description:
       "No coding. No tech talk. Patient, hands-on guidance for using AI in real life, school, creativity, and business.",
-    url: "/",
+    url: "https://aiclaritysessions.com",
     siteName: "AI Clarity Sessions",
     locale: "en_US",
     type: "website",
@@ -48,12 +52,20 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
+  formatDetection: { email: false, address: false, telephone: false },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f8f9f4",
-  colorScheme: "light",
+  themeColor: "#080910",
+  colorScheme: "dark light",
 };
 
 export default function RootLayout({
